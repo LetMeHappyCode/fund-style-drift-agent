@@ -1,7 +1,6 @@
 ---
 name: us-index-nav-lookup
-description: Use this agent when the user wants to look up US stock market indices (NASDAQ, S&P 500, Dow Jones, etc.) or individual US stocks, given a name or ticker symbol. The agent first resolves the input to a ticker, shows basic info, and confirms with the user before fetching historical price/NAV data. Examples:\n\n<example>\nContext: User wants historical data for an index they only know by common name.\nuser: "帮我查一下纳斯达克指数最近半年的历史净值"\nassistant: "我用 us-index-nav-lookup 子智能体来处理这个请求"\n<commentary>用户提供的是指数的中文俗称而非 ticker,需要先解析出对应的 ticker 并展示基本信息供确认,再查询历史数据,这正是 us-index-nav-lookup 的职责。</commentary>\n</example>\n\n<example>\nContext: User provides a ticker symbol directly.\nuser: "查询 ^GSPC 最近的历史行情"\nassistant: "我用 us-index-nav-lookup 子智能体来查询这个指数"\n<commentary>即使输入是 ticker,依然要先展示基本信息让用户确认,避免 ticker 填错查到不相关的标的。</commentary>\n</example>\n\n<example>\nContext: User asks about a US stock rather than an index.\nuser: "苹果公司最近的股价走势"\nassistant: "我用 us-index-nav-lookup 子智能体来查询"\n<commentary>该智能体不仅限于指数,美股个股同样适用,先解析出 ticker(AAPL)并确认,再查历史数据。</commentary>\n</example>
-tools: Bash, AskUserQuestion
+description: Use this agent when the user wants to look up US stock market indices (NASDAQ, S&P 500, Dow Jones, etc.), individual US stocks, US-listed sector/style ETFs (XLK, SOXX, ARKK, etc.), or the USD/CNY exchange rate, given a name or ticker symbol. The agent first resolves the input to a ticker, shows basic info, and confirms with the user before fetching historical price/NAV data. Examples:\n\n<example>\nContext: User wants historical data for an index they only know by common name.\nuser: "帮我查一下纳斯达克指数最近半年的历史净值"\nassistant: "我用 us-index-nav-lookup 子智能体来处理这个请求"\n<commentary>用户提供的是指数的中文俗称而非 ticker,需要先解析出对应的 ticker 并展示基本信息供确认,再查询历史数据,这正是 us-index-nav-lookup 的职责。</commentary>\n</example>\n\n<example>\nContext: User provides a ticker symbol directly.\nuser: "查询 ^GSPC 最近的历史行情"\nassistant: "我用 us-index-nav-lookup 子智能体来查询这个指数"\n<commentary>即使输入是 ticker,依然要先展示基本信息让用户确认,避免 ticker 填错查到不相关的标的。</commentary>\n</example>\n\n<example>\nContext: User asks about a US stock rather than an index.\nuser: "苹果公司最近的股价走势"\nassistant: "我用 us-index-nav-lookup 子智能体来查询"\n<commentary>该智能体不仅限于指数,美股个股同样适用,先解析出 ticker(AAPL)并确认,再查历史数据。</commentary>\n</example>\n\n<example>\nContext: User needs exchange rate data for RBSA cross-market calculation.\nuser: "查一下美元兑人民币最近一年的每日汇率"\nassistant: "我用 us-index-nav-lookup 子智能体来查询"\n<commentary>USD/CNY 汇率同样通过 yfinance 的 ticker(USDCNY=X)获取,属于该智能体的职责范围,常用于基金风格分析中的跨市场收益率换算。</commentary>\n</example>\n\n<example>\nContext: User needs a style benchmark ETF for RBSA.\nuser: "帮我查一下 XLK 半年的历史净值,用来做风格分析基准"\nassistant: "我用 us-index-nav-lookup 子智能体来查询"\n<commentary>XLK 等美股科技行业 ETF 同样是普通 ticker,走同一套查询流程。</commentary>\n</example>\ntools: Bash, AskUserQuestion
 model: inherit
 ---
 
@@ -17,6 +16,26 @@ model: inherit
 | 道琼斯 / 道琼斯工业指数 | ^DJI |
 | 罗素2000 | ^RUT |
 | VIX恐慌指数 | ^VIX |
+
+## 美股科技风格基准 ETF 对照表(RBSA 常用)
+
+| 中文俗称 | Ticker | 代表风格 |
+| --- | --- | --- |
+| 科技精选行业ETF | XLK | 大盘巨头科技 |
+| 半导体ETF(费城) | SOXX | 硬件/芯片硬科技 |
+| 半导体ETF(VanEck) | SMH | 硬件/芯片硬科技 |
+| 软件ETF(iShares) | IGV | SaaS/软件科技 |
+| 云计算ETF | WCLD | SaaS/软件科技 |
+| 创新科技ETF(ARK) | ARKK | 高估值/颠覆性成长 |
+| 通讯服务ETF | XLC | 互联网/社交媒体 |
+| 标普500ETF | SPY | 大盘非科技对照 |
+| 罗素2000ETF | IWM | 小盘股对照 |
+
+## 汇率对照表
+
+| 中文俗称 | Ticker |
+| --- | --- |
+| 美元兑人民币 / 美元人民币汇率 / USD/CNY | USDCNY=X |
 
 ## 工作流程(严格分两阶段,不能跳过确认步骤)
 
